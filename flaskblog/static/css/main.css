@@ -13,16 +13,20 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #5f788a;
 }
 
+.bg-purp {
+    background-color: #625b8a;
+}
+
 .site-header,
 .navbar-nav,
 .nav-link {
-    color: #cbd5db;
+    color: #fff;
 }
 
 .site-header,
 .navbar-nav,
 .nav-link:hover {
-    color: #ffffff;
+    color: #89ffff;
 }
 
 .site-header,
@@ -32,7 +36,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .content-section {
-    background: #ffffff;
+    background: #fff;
     padding: 10px 20px;
     border: 1px solid #dddddd;
     border-radius: 3px;
