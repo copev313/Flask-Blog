@@ -2,10 +2,13 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
-
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!42476'
+
+load_dotenv()
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///site.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
