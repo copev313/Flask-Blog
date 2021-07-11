@@ -6,14 +6,17 @@
 
     {% for post in posts %}
         <article class="media content-section">
+            <img class="rounded-circle article-img"
+                src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
+                alt="author profile image">
             <div class="media-body">
                 <div class="article-metadata">
-                    <a class="mr-3" href="#">{{ post.author }}</a>
-                    <small class="text-muted">{{ post.date_posted }}</small>
+                    <a class="mr-3" href="#">{{ post.author.username }}</a>
+                    <small class="text-muted justify">{{ post.date_posted.strftime('%B %d, %Y') }}</small>
                 </div>
                 <h2 class="py-1">
                     <a  class="article-title"
-                        href="#">
+                        href="{{ url_for('post', post_id=post.id) }}">
                         {{ post.title }}
                     </a>
                 </h2>

@@ -1,12 +1,20 @@
 import secrets
 import os
 from PIL import Image
-from flask import flash, redirect, render_template, request, url_for
+from flask import (
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    abort
+)
 from flaskblog import app, bcrypt, db
 from flaskblog.forms import (
     LoginForm,
     RegistrationForm,
     UpdateAccountForm,
+    PostForm
 )
 from flaskblog.models import Post, User
 from flask_login import (
@@ -16,26 +24,11 @@ from flask_login import (
     logout_user,
 )
 
-# Sample post data:
-posts = [
-    {
-        'author': 'Evan Cope',
-        'title': 'Post One Title',
-        'content': "First post's content . . .",
-        'date_posted': 'April 1, 2020',
-    }, 
-    {
-        'author': 'Evan Cope',
-        'title': 'Post Two Title',
-        'content': "Second post's content . . .",
-        'date_posted': 'April 2, 2020',
-    },
-]
-
 
 @app.route('/')
 @app.route('/home')
 def home():
+    posts = Post.query.all()   
     return render_template('home.html', posts=posts)
 
 
@@ -51,7 +44,7 @@ def register():
         return redirect(url_for('home'))
 
     form = RegistrationForm()
-
+    # [CASE] POST request:
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(
             form.password.data).decode('utf-8')
@@ -60,12 +53,15 @@ def register():
                     password=hashed_password)
         db.session.add(user)
         db.session.commit()
-
-        flash(f"Your account has been created. You are now able to login",
+        flash("Your account has been created. You are now able to login",
               'success')
         return redirect(url_for('login'))
-    
-    return render_template('register.html', title='Register', form=form)
+
+    # [CASE] GET request:
+    if (request.method == 'GET'):
+        return render_template('register.html',
+                               title='Register',
+                               form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -75,18 +71,28 @@ def login():
         return redirect(url_for('home'))
 
     form = LoginForm()
+    # [CASE] POST request:
+    if (request.method == 'POST'):
+        if form.validate_on_submit():
+            user = User.query.filter_by(email=form.email.data).first()
 
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+            # [CASE] Valid user exists & password is correct:
+            if user and bcrypt.check_password_hash(
+                user.password, form.password.data
+            ):
+                login_user(user, remember=form.remember.data)
+                next_page = request.args.get('next')
+                if next_page:
+                    return redirect(next_page)
+                else:
+                    return redirect(url_for('home'))
 
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
-        else:
-            flash("Login unsuccessful. Please check email and password.",
-                  'danger')
+            # [CASE] Invalid email or password:
+            else:
+                flash("Login unsuccessful. Please check email and password.",
+                      'danger')
 
+    # [CASE] GET request:
     return render_template('login.html', title='Login', form=form)
 
 
@@ -94,6 +100,7 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
 
 # Helper function for resizing & saving a profile image:
 def save_picture(form_picture):
@@ -110,7 +117,6 @@ def save_picture(form_picture):
     img.thumbnail(output_size)
     # Save the image:
     img.save(picture_path)
-
     return picture_fn
 
 
@@ -118,7 +124,6 @@ def save_picture(form_picture):
 @login_required
 def account():
     form = UpdateAccountForm()
-
     # [CASE] POST request:
     if form.validate_on_submit():
         if form.picture.data:
@@ -144,3 +149,74 @@ def account():
                            title='Account',
                            image_file=image_file,
                            form =form)
+
+
+# Create a new post:
+@app.route('/post/new', methods=['GET', 'POST'])
+@login_required
+def new_post():
+    form = PostForm()
+    # [CASE] POST request:
+    if form.validate_on_submit():
+        post = Post(title=form.title.data,
+                    content=form.content.data,
+                    author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash("Post has been created.", 'success')
+        return redirect(url_for('home'))
+
+    # [CASE] GET request:
+    return render_template('create_post.html',
+                           title='New Post',
+                           form=form)
+
+
+@app.route('/post/<int:post_id>')
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html',
+                           title=post.title,
+                           post=post)
+
+
+# Update an existing post:
+@app.route('/post/<int:post_id>/update', methods=['GET', 'POST'])
+@login_required
+def update_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    # [VALIDATION] Only the post's author can update the post:
+    if (post.author != current_user):       
+        abort(403)
+
+    form = PostForm()
+    # [CASE] POST request:
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        db.session.commit()
+        flash("Your post has been updated.", 'info')
+        return redirect(url_for('post', post_id=post.id))
+
+    # [CASE] GET request:
+    elif (request.method == 'GET'):
+        form.title.data = post.title
+        form.content.data = post.content
+        return render_template('create_post.html',
+                               title='Update Post',
+                               form=form)
+
+
+@app.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    # [VALIDATION] Only the post's author can delete the post:
+    if (post.author != current_user):       
+        abort(403)
+    
+    # Delete the post:
+    db.session.delete(post)
+    db.session.commit()
+    flash("Your post has been deleted.", 'secondary')
+    return redirect(url_for('home'))

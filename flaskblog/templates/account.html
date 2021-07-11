@@ -11,9 +11,8 @@
                 <p class="text-secondary">{{ current_user.email }}</p>
             </div>
         </div>
-        
-            <form action="" method="POST" enctype="multipart/form-data">
-                {{ form.hidden_tag() }}
+        <form action="" method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
                 <fieldset class="form-group">
                     <legend class="border-bottom mb-4 pt-2"><h3>Account Info</h3></legend>
                     <div class="form-group">
@@ -61,9 +60,9 @@
                     </div.form-group>
                 </fieldset>
     
-                <div class="form-group">
-                    {{ form.submit(class="btn btn-outline-info mt-3") }}
-                </div>
-            </form>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info mt-3") }}
+            </div>
+        </form>
     </div>
 {% endblock content %}

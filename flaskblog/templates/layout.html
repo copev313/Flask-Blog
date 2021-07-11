@@ -16,12 +16,13 @@
 </head>
 <body>
     <!-- NAVBAR COMPONENT -->
-    {% include 'navigation.html' %}
+    {% include "components/navigation.html" %}
 
     <main role="main" class="container">
         <div class="row">
             <div class="col-md-8">
 
+                <!-- Handle success & error messages. -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
 
@@ -34,7 +35,9 @@
                     {% endif %}
                 {% endwith %}
 
-                {% block content %}{% endblock %}
+                {% block content %}
+                {% endblock content %}
+
             </div>
 
             <div class="col-md-4">

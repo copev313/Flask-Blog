@@ -1,4 +1,3 @@
-SECRET_KEY=6d732c345d80597d3ab747bd74007d5da9a9bf34f3b65e99
 FLASK_APP = flaskblog.py
 FLASK_DEBUG = 1
 FLASK_ENV=development
