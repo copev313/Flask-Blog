@@ -28,7 +28,10 @@ from flask_login import (
 @app.route('/')
 @app.route('/home')
 def home():
-    posts = Post.query.all()   
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query\
+                .order_by(Post.date_posted.desc())\
+                .paginate(page=page, per_page=5)
     return render_template('home.html', posts=posts)
 
 
@@ -46,8 +49,8 @@ def register():
     form = RegistrationForm()
     # [CASE] POST request:
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(
-            form.password.data).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(form.password.data)\
+                                .decode('utf-8')
         user = User(username=form.username.data,
                     email=form.email.data,
                     password=hashed_password)
@@ -58,10 +61,9 @@ def register():
         return redirect(url_for('login'))
 
     # [CASE] GET request:
-    if (request.method == 'GET'):
-        return render_template('register.html',
-                               title='Register',
-                               form=form)
+    return render_template('register.html',
+                            title='Register',
+                            form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -220,3 +222,16 @@ def delete_post(post_id):
     db.session.commit()
     flash("Your post has been deleted.", 'secondary')
     return redirect(url_for('home'))
+
+
+@app.route('/user/<string:username>')
+def user_posts(username):
+    page = request.args.get('page', 1, type=int)
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.filter_by(author=user)\
+                .order_by(Post.date_posted.desc())\
+                .paginate(page=page, per_page=5)
+
+    return render_template('user_posts.html',
+                           posts=posts,
+                           user=user)
