@@ -1,6 +1,13 @@
-from flaskblog import db, login_manager
+from flaskblog import db, login_manager, app
 from datetime import datetime
 from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+
+
+# User Manager for Flask Login:
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 class User(db.Model, UserMixin):
@@ -11,12 +18,24 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
     
+    # Generate a secure reset token that's good for 30 minutes (by default):
+    def get_reset_token(self, expires_sec=30*60):
+        serial = Serializer(app.config['SECRET_KEY'], expires_sec)
+        token = serial.dumps({'user_id': self.id}).decode('utf8')
+        return token
+
+    # Validate the reset tokens:
+    @staticmethod
+    def verify_reset_token(token):
+        serial = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = serial.loads(token)['user_id']
+        except:
+            return None
+        return User.query.get(user_id)
+
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
 
 
 class Post(db.Model):
