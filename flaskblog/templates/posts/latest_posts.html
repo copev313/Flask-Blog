@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+
+{% block content %}
+
+    <h1 class="pb-4">Latest Posts</h1>
+
+    {% for post in posts %}
+        <article class="media content-section">
+            <img class="rounded-circle article-img"
+                src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}"
+                alt="author profile image">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <a class="mr-3" href="{{ url_for('users.user_posts', username=post.author.username) }}">{{ post.author.username }}</a>
+                    <small class="text-muted justify">{{ post.date_posted.strftime('%B %d, %Y') }}</small>
+                </div>
+                <h2 class="py-1">
+                    <a  class="article-title"
+                        href="{{ url_for('posts.post', post_id=post.id) }}">
+                        {{ post.title }}
+                    </a>
+                </h2>
+                <p class="article-content">{{ post.content | truncate(max_chars) }}</p>
+            </div>
+        </article>
+    {% endfor %}
+
+{% endblock content %}

@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app
 from flask_login import current_user, login_required, login_user, logout_user
 from flaskblog import bcrypt, db
 from flaskblog.users.forms import (LoginForm, RegistrationForm, RequestResetForm,
@@ -31,7 +31,7 @@ def register():
         return redirect(url_for('users.login'))
 
     # [CASE] GET request:
-    return render_template('register.html',
+    return render_template('users/register.html',
                             title='Register',
                             form=form)
 
@@ -65,7 +65,7 @@ def login():
                       'danger')
 
     # [CASE] GET request:
-    return render_template('login.html', title='Login', form=form)
+    return render_template('users/login.html', title='Login', form=form)
 
 
 @users.route('/logout')
@@ -99,7 +99,7 @@ def account():
     image_file = url_for('static',
                          filename= f"profile_pics/{current_user.image_file}")
 
-    return render_template('account.html',
+    return render_template('users/account.html',
                            title='Account',
                            image_file=image_file,
                            form =form)
@@ -111,9 +111,10 @@ def user_posts(username):
     user = User.query.filter_by(username=username).first_or_404()
     posts = Post.query.filter_by(author=user)\
                 .order_by(Post.date_posted.desc())\
-                .paginate(page=page, per_page=5)
+                .paginate(page=page,
+                          per_page=current_app.config['POSTS_PER_PAGE'])
 
-    return render_template('user_posts.html',
+    return render_template('users/user_posts.html',
                            posts=posts,
                            user=user)
 
@@ -134,7 +135,7 @@ def reset_request():
         return redirect(url_for('users.login'))
     
     # [CASE] GET request:
-    return render_template('reset_request.html',
+    return render_template('users/reset_request.html',
                            title='Reset Password',
                            form=form)
 
@@ -147,7 +148,7 @@ def reset_token(token):
     
     user = User.verify_reset_token(token)
     if user is None:       
-        flash('That is an invalid or expired token.', 'warning')       
+        flash('That is an invalid or expired token.', 'danger')       
         return redirect(url_for('users.reset_request'))
 
     form = ResetPasswordForm()
@@ -162,6 +163,6 @@ def reset_token(token):
         return redirect(url_for('users.login'))
 
     # [CASE] GET request:
-    return render_template('reset_token.html',
+    return render_template('users/reset_token.html',
                            title='Reset Password',
                            form=form)

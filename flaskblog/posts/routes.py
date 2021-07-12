@@ -1,13 +1,21 @@
-from flask import (Blueprint, abort, flash, redirect, render_template, request,
+from flask import (Blueprint, abort, current_app, flash, redirect, render_template, request,
                    url_for)
 from flask_login import current_user, login_required
 from flaskblog import db
 from flaskblog.posts.forms import PostForm
-from flaskblog.models import Post
+from flaskblog.models import Post, User
 
 
 posts = Blueprint('posts', __name__)
 
+
+@posts.route('/posts/latest-posts')
+def latest_posts():
+    posts = Post.query.order_by(Post.date_posted.desc()).limit(5).all()
+    return render_template('posts/latest_posts.html',
+                           posts=posts,
+                           max_chars=current_app.config['MAX_PREVIEW_CHARS'],
+                           footer=True)
 
 # Create a new post:
 @posts.route('/post/new', methods=['GET', 'POST'])
@@ -25,7 +33,7 @@ def new_post():
         return redirect(url_for('main.home'))
 
     # [CASE] GET request:
-    return render_template('create_post.html',
+    return render_template('posts/create_post.html',
                            title='New Post',
                            form=form)
 
@@ -33,7 +41,7 @@ def new_post():
 @posts.route('/post/<int:post_id>')
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html',
+    return render_template('posts/post.html',
                            title=post.title,
                            post=post)
 
@@ -60,7 +68,7 @@ def update_post(post_id):
     elif (request.method == 'GET'):
         form.title.data = post.title
         form.content.data = post.content
-        return render_template('create_post.html',
+        return render_template('posts/create_post.html',
                                title='Update Post',
                                form=form)
 
