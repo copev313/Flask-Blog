@@ -4,6 +4,7 @@ from flask_login import UserMixin
 from flask import current_app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
+# FLASK-MIGRATE: https://flask-migrate.readthedocs.io/en/latest/#
 
 # User Manager for Flask Login:
 @login_manager.user_loader

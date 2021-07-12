@@ -13,4 +13,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('EMAIL_USER')
     MAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD')
-    #DEBUG = True
+    
+    POSTS_PER_PAGE = 5
+    MAX_PREVIEW_CHARS = 300
+    DEBUG = True
