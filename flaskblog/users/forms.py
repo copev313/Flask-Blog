@@ -6,7 +6,6 @@ from wtforms import (
     PasswordField,
     SubmitField,
     BooleanField,
-    TextAreaField,
 )
 from wtforms.validators import (
     DataRequired,
@@ -64,12 +63,6 @@ class UpdateAccountForm(FlaskForm):
             user = User.query.filter_by(email=email.data).first()
             if user:
                 raise ValidationError("This email address is already in use. Please choose a different one.")
-
-
-class PostForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    content = TextAreaField('Content', validators=[DataRequired()])
-    submit = SubmitField('Post')
 
 
 class RequestResetForm(FlaskForm):
