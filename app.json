@@ -1,0 +1,28 @@
+{
+    "name": "Flask-Blog",
+    "description": "A simple blog application built using Python's Flask microframework.",
+    "keywords": [
+      "blog",
+      "flask",
+      "python"
+    ],
+    "website": "https://iangoodnight.github.io/receivingdb/",
+    "repository": "https://github.com/iangoodnight/ReceivingDB",
+    "env": {
+      "DB_URI": {
+        "description": "A SQL database connection string"
+      },
+      "SECRET_KEY": {
+        "description": "A secret key for securing sensitive information",
+        "value": "secret-key-should-be-long-and-randomly-generated!"
+      },
+      "EMAIL_USER": {
+        "description": "An email address to a gmail account to use for SMTP",
+        "value": "ur-email@gmail.com"
+      },
+      "EMAIL_PASSWORD": {
+        "description": "The password to the email account",
+        "value": "URemailsPassword!!!"
+    }
+  }
+}
